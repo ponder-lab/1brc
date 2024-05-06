@@ -25,6 +25,7 @@ import java.lang.reflect.Field;
 import java.nio.channels.FileChannel.MapMode;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import org.openjdk.jmh.annotations.*;
 
 /**
  * I figured out it would be very hard to win the main competition of the One Billion Rows Challenge.
@@ -49,12 +50,14 @@ import java.util.concurrent.atomic.AtomicLong;
  *     Francesco gave me the idea to check register spilling.</li>
  * </ul>
  */
+@State(Scope.Benchmark)
 public class CalculateAverage_jerrinot {
     private static final Unsafe UNSAFE = unsafe();
     private static final String MEASUREMENTS_TXT = "measurements.txt";
     // todo: with hyper-threading enable we would be better of with availableProcessors / 2;
     // todo: validate the testing env. params.
-    private static final int EXTRA_THREAD_COUNT = Runtime.getRuntime().availableProcessors() - 1;
+    @Param({ "10", "25", "50", "100", "250", "500" })
+    public static int EXTRA_THREAD_COUNT;
     // private static final int THREAD_COUNT = 1;
 
     private static final long SEPARATOR_PATTERN = 0x3B3B3B3B3B3B3B3BL;
@@ -121,7 +124,8 @@ public class CalculateAverage_jerrinot {
                 .transferTo(System.out);
     }
 
-    static void calculate() throws Exception {
+    @Benchmark
+    public static void calculate() throws Exception {
         final File file = new File(MEASUREMENTS_TXT);
         final long length = file.length();
         try (var raf = new RandomAccessFile(file, "r")) {
